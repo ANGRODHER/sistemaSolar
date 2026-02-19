@@ -8,6 +8,19 @@ function createIcosphere(radius = 1, subdivisions = 2) {
     t, 0, -1,   t, 0, 1,   -t, 0, -1,   -t, 0, 1
   ];
 
+  // Normalizar vértices base
+  for (let i = 0; i < vertices.length; i += 3) {
+    const x = vertices[i];
+    const y = vertices[i + 1];
+    const z = vertices[i + 2];
+
+    const length = Math.sqrt(x * x + y * y + z * z);
+
+    vertices[i] = x / length;
+    vertices[i + 1] = y / length;
+    vertices[i + 2] = z / length;
+  }
+
   // Índices de las caras (triángulos)
   const indices = [
     0, 11, 5,   0, 5, 1,   0, 1, 7,   0, 7, 10,  0, 10, 11,
@@ -72,9 +85,23 @@ function createIcosphere(radius = 1, subdivisions = 2) {
     positions[i + 2] = (z / length) * radius;
   }
 
+  const normals = [];
+
+  // En una esfera centrada en el origen:
+  // normal = posición normalizada
+  for (let i = 0; i < positions.length; i += 3) {
+    const x = positions[i];
+    const y = positions[i + 1];
+    const z = positions[i + 2];
+
+    const length = Math.sqrt(x * x + y * y + z * z);
+
+    normals.push(x / length, y / length, z / length);
+  }
+
   return {
     position: { numComponents: 3, data: new Float32Array(positions) },
-    color: { numComponents: 3, data: new Float32Array(colors) },
+    normal: { numComponents: 3, data: new Float32Array(normals) },
     indices: { numComponents: 1, data: new Uint16Array(finalIndices) },
   };
 }
