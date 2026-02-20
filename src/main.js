@@ -6,12 +6,6 @@ if (!gl) {
   throw new Error("WebGL2 no disponible");
 }
 
-// Configurar el canvas
-//canvas.width = canvas.clientWidth;
-//canvas.height = canvas.clientHeight;
-//gl.viewport(0, 0, canvas.width, canvas.height);
-
-
 async function loadShader(url) {
   const response = await fetch(url);
   return await response.text();
@@ -29,10 +23,8 @@ async function init() {
 
 init();
 
-
 // Matrices
 const aspect = canvas.clientWidth / canvas.clientHeight;
-
 
 const projection = twgl.m4.perspective(
   45 * Math.PI / 180,
@@ -40,7 +32,6 @@ const projection = twgl.m4.perspective(
   0.1,
   1000
 );
-
 
 const camera = twgl.m4.lookAt([0, 50, 90], [0, 0, 0], [0, 1, 0]);
 const view = twgl.m4.inverse(camera);
