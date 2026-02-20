@@ -1,3 +1,8 @@
+# Nombre, Apellido y carnets
+
+Angel Rodriguez 15-11669
+Abel Zabaleta 15-11574
+
 # Sistema Solar
 
 Un modelo interactivo del sistema solar en miniatura construido con WebGL y TWGL.
