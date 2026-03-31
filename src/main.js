@@ -1,6 +1,17 @@
 // main.js
 const canvas = document.getElementById("glcanvas");
 const gl = canvas.getContext("webgl2");
+
+function loadTexture(url) {
+  
+  return twgl.createTexture(gl, {
+    src: url,
+    flipY: true,
+    wrap: gl.REPEAT,
+  });
+}
+
+
 if (!gl) {
   alert("WebGL2 no disponible");
   throw new Error("WebGL2 no disponible");
@@ -17,6 +28,18 @@ async function init() {
   const fs = await loadShader("assets/shaders/fragment.glsg");
 
   programInfo = twgl.createProgramInfo(gl, [vs, fs]);
+
+  textures.earth = twgl.createTexture(gl, {
+    src: "assets/textures/earth.jpg",
+  });
+
+  textures.moon = twgl.createTexture(gl, {
+    src: "assets/textures/moon.jpg",
+  });
+
+  textures.sun = twgl.createTexture(gl, {
+    src: "assets/textures/sun.jpg",
+  });
 
   render();
 }
@@ -39,6 +62,13 @@ const view = twgl.m4.inverse(camera);
 // Parametros de la esfera: tamaño, color, divisiones
 const sphereData = createIcosphere(1, 4); // usamos 4 subdivisiones para que se vea mas redondo
 const sphereBufferInfo = twgl.createBufferInfoFromArrays(gl, sphereData);
+
+const textures = {
+  sun: loadTexture("assets/textures/sun.jpg"),
+  earth: loadTexture("assets/textures/earth.jpg"),
+  moon: loadTexture("assets/textures/moon.jpg"),
+  jupiter: loadTexture("assets/textures/jupiter.png"),
+};
 
 // Estructura de datos para los planetas
 const solarSystem = {
@@ -123,7 +153,7 @@ function render(time) {
   let uniforms = {
     u_projection: projection,
     u_view: view,
-    u_lightDirection: [1, 1, 1],
+    u_lightPosition: [0, 0, 0], // EL SOL ES LA LUZ
   };
   twgl.setUniforms(programInfo, uniforms);
 
@@ -136,10 +166,36 @@ function render(time) {
     let selfRotationMatrix = twgl.m4.axisRotate(positionMatrix, [0, 1, 0], time); //Rotacion sobre si mismo
     let modelMatrix = twgl.m4.scale(selfRotationMatrix, [planet.radius, planet.radius, planet.radius]); //Escalar
 
+    let useTexture = false;
+    let texture = null;
+
+    // Solo la Tierra tendrá textura por ahora
+    if (planet.name === "Tierra") {
+      useTexture = true;
+      texture = textures.earth;
+    }
+    if (planet.name === "Luna") {
+      useTexture = true;
+      texture = textures.moon;
+    }
+    if (planet.name === "Jupiter") {
+      useTexture = true;
+      texture = textures.jupiter;
+    }
+
     twgl.setUniforms(programInfo, {
       u_model: modelMatrix,
-      u_color: planet.color
+      u_color: planet.color,
+      u_useTexture: useTexture,
+      u_isSun: false,
     });
+
+    // SOLO si hay textura, la enviamos
+    if (useTexture) {
+      twgl.setUniforms(programInfo, {
+        u_texture: texture,
+      });
+    }
 
     twgl.setBuffersAndAttributes(gl, programInfo, sphereBufferInfo);
     twgl.drawBufferInfo(gl, sphereBufferInfo);
@@ -159,7 +215,10 @@ function render(time) {
 
   twgl.setUniforms(programInfo, {
     u_model: twgl.m4.scale(sunRotation, [solarSystem.radius, solarSystem.radius, solarSystem.radius]),
-    u_color: solarSystem.color
+    u_color: solarSystem.color,
+    u_useTexture: true,
+    u_texture: textures.sun,
+    u_isSun: true
   });
   twgl.setBuffersAndAttributes(gl, programInfo, sphereBufferInfo);
   twgl.drawBufferInfo(gl, sphereBufferInfo);
