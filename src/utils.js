@@ -31,6 +31,7 @@ function createIcosphere(radius = 1, subdivisions = 2) {
 
   // Subdividir los triángulos (simplificado)
   const positions = [];
+  const texcoords = [];
   const colors = [];
   const finalIndices = [];
 
@@ -39,6 +40,17 @@ function createIcosphere(radius = 1, subdivisions = 2) {
     if (depth === 0) {
       finalIndices.push(positions.length / 3, (positions.length + 3) / 3, (positions.length + 6) / 3);
       positions.push(...v1, ...v2, ...v3);
+      // UV por vértice base (estable)
+      texcoords.push(
+        0.5 + Math.atan2(v1[2], v1[0]) / (2 * Math.PI),
+        0.5 - Math.asin(v1[1]) / Math.PI,
+
+        0.5 + Math.atan2(v2[2], v2[0]) / (2 * Math.PI),
+        0.5 - Math.asin(v2[1]) / Math.PI,
+
+        0.5 + Math.atan2(v3[2], v3[0]) / (2 * Math.PI),
+        0.5 - Math.asin(v3[1]) / Math.PI
+      );
       colors.push(...getRandomColor(), ...getRandomColor(), ...getRandomColor());
       return;
     }
@@ -102,6 +114,7 @@ function createIcosphere(radius = 1, subdivisions = 2) {
   return {
     position: { numComponents: 3, data: new Float32Array(positions) },
     normal: { numComponents: 3, data: new Float32Array(normals) },
+    texcoord: { numComponents: 2, data: new Float32Array(texcoords) },
     indices: { numComponents: 1, data: new Uint16Array(finalIndices) },
   };
 }
